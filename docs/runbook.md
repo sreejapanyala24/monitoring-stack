@@ -1,140 +1,295 @@
-**Monitoring Stack Runbook**
-(Prometheus + Grafana + Alertmanager + Node Exporter)
+# RUNBOOK — Monitoring Stack (Prometheus + Grafana + Alertmanager + Node Exporter)
 
-**1. Overview**
-This runbook provides operational procedures for managing the self-hosted monitoring stack deployed on AWS EC2 using Terraform. The stack includes:
-Prometheus – metrics collection
-Node Exporter – system metrics
-Alertmanager – alert routing
-Grafana – dashboards and visualization
+## 1. Overview
+
+This runbook provides operational procedures for managing the self-hosted monitoring stack deployed on AWS EC2 using Terraform.
+
+The stack includes:
+
+- **Prometheus** – metrics collection
+- **Node Exporter** – system metrics
+- **Alertmanager** – alert routing
+- **Grafana** – dashboards and visualization
+
 All components run on Linux EC2 instances provisioned via Terraform.
 
-**2. Accessing the Monitoring EC2 Instance**
-SSH into the instance
-ssh -i <your-key.pem> ubuntu@<EC2-PUBLIC-IP>
+---
 
-Check system resources
+## 2. Accessing the Monitoring EC2 Instance
+
+### SSH into the instance
+
+```bash
+ssh -i <your-key.pem> ubuntu@<EC2-PUBLIC-IP>
+```
+
+### Check system resources
+
+```bash
 top
 df -h
 free -m
+```
 
-**3. Prometheus Operations**
-Service Management
-Check status
+---
+
+## 3. Prometheus Operations
+
+### Check Prometheus service
+
+```bash
 sudo systemctl status prometheus
-Start / Stop / Restart
+```
+
+### Start / Stop / Restart
+
+```bash
 sudo systemctl start prometheus
 sudo systemctl stop prometheus
 sudo systemctl restart prometheus
-View logs
+```
+
+### View Prometheus logs
+
+```bash
 sudo journalctl -u prometheus -f
-Configuration
-Configuration files:
+```
+
+### Prometheus config location
+
+```
 /etc/prometheus/prometheus.yml
 /etc/prometheus/alert.rules.yml
-Validate Configuration
+```
+
+### Validate Prometheus config
+
+```bash
 promtool check config /etc/prometheus/prometheus.yml
 promtool check rules /etc/prometheus/alert.rules.yml
-Web UI
+```
+
+### Prometheus UI
+
+```
 http://<EC2-IP>:9090
+```
 
-**4. Alertmanager Operations**
-Service Management
-Check status
+---
+
+## 4. Alertmanager Operations
+
+### Check Alertmanager service
+
+```bash
 sudo systemctl status alertmanager
+```
 
-Restart service
+### Start / Stop / Restart
+
+```bash
 sudo systemctl restart alertmanager
+```
 
-View logs
+### View logs
+
+```bash
 sudo journalctl -u alertmanager -f
-Configuration
-Config file: /etc/alertmanager/alertmanager.yml
-Web UI
-http://<EC2-IP>:9093
+```
 
-**5. Node Exporter Operations**
-Service Management
-Check status
-sudo systemctl status node_exporter
+### Config location
 
-Start / Stop / Restart
-sudo systemctl restart node_exporter
-
-Verify Metrics
-curl http://localhost:9100/metrics
-
-**6. Grafana Operations**
-Service Management
-Check status
-sudo systemctl status grafana-server
-
-Restart service
-sudo systemctl restart grafana-server
-
-Web UI
-URL: http://<EC2-IP>:3000
-Default credentials:
-Username: admin
-Password: admin
-Import Dashboard
-Navigate to Grafana → Dashboards → Import
-Upload: grafana/dashboards/nodeexporterfull.json
-Select Prometheus as the datasource
-
-**7. Triggering Alerts (for Testing)**
-Trigger High CPU Alert
-yes > /dev/null &
-Stop CPU Load
-killall yes
-Trigger Low Memory Alert
-stress --vm 1 --vm-bytes 700M --timeout 60s
-
-**8. Troubleshooting**
-Prometheus Not Showing Alerts
-Check alert rules:
-promtool check rules /etc/prometheus/alert.rules.yml
-Ensure alerting block exists in prometheus.yml:
-alerting:  alertmanagers:    - static_configs:        - targets: ["localhost:9093"]
-Alertmanager Shows &#x201C;No Alert Groups Found&#x201D;
-Prometheus may not be forwarding alerts. Restart Prometheus:
-sudo systemctl restart prometheus
-Grafana Cannot Connect to Prometheus
-Check datasource URL is configured as: http://localhost:9090
-Verify security group allows ports 3000 (Grafana) and 9090 (Prometheus)
-Node Exporter Not Being Scraped
-Verify Prometheus target status:
-http://<EC2-IP>:9090/targets
-Ensure Node Exporter is running:
-sudo systemctl status node_exporter
-
-**9. File Locations Summary**
-Component
-File Path
-Prometheus Config
-/etc/prometheus/prometheus.yml
-Alert Rules
-/etc/prometheus/alert.rules.yml
-Alertmanager Config
+```
 /etc/alertmanager/alertmanager.yml
-Node Exporter
-/usr/local/bin/node_exporter
-Grafana Dashboards
-/var/lib/grafana/dashboards/
+```
 
+### Alertmanager UI
 
-**10. Terraform Operations**
-Initialize
+```
+http://<EC2-IP>:9093
+```
+
+---
+
+## 5. Node Exporter Operations
+
+### Check Node Exporter
+
+```bash
+sudo systemctl status node_exporter
+```
+
+### Start / Stop / Restart
+
+```bash
+sudo systemctl restart node_exporter
+```
+
+### Verify metrics endpoint
+
+```bash
+curl http://localhost:9100/metrics
+```
+
+---
+
+## 6. Grafana Operations
+
+### Check Grafana service
+
+```bash
+sudo systemctl status grafana-server
+```
+
+### Start / Stop / Restart
+
+```bash
+sudo systemctl restart grafana-server
+```
+
+### Grafana UI
+
+```
+http://<EC2-IP>:3000
+```
+
+### Default credentials
+
+```
+admin / admin
+```
+
+### Import dashboard
+
+1. Grafana → Dashboards → Import
+2. Upload: grafana/dashboards/nodeexporterfull.json
+3. Select Prometheus datasource
+
+---
+
+## 7. Triggering Alerts (for testing)
+
+### Trigger High CPU alert
+
+```bash
+yes > /dev/null &
+```
+
+### Stop CPU load
+
+```bash
+killall yes
+```
+
+### Trigger Low Memory alert (optional)
+
+```bash
+stress --vm 1 --vm-bytes 700M --timeout 60s
+```
+
+---
+
+## 8. Troubleshooting
+
+### Prometheus not showing alerts
+
+Check alert rules:
+
+```bash
+promtool check rules /etc/prometheus/alert.rules.yml
+```
+
+Ensure alerting block exists in prometheus.yml:
+
+```yaml
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["localhost:9093"]
+```
+
+### Alertmanager shows "No alert groups found"
+
+- Prometheus not forwarding alerts
+- Restart Prometheus:
+
+```bash
+sudo systemctl restart prometheus
+```
+
+### Grafana cannot connect to Prometheus
+
+- Check datasource URL:
+  ```
+  http://localhost:9090
+  ```
+- Check security group allows port 3000 (Grafana) and 9090 (Prometheus)
+
+### Node Exporter not scraped
+
+- Verify Prometheus target:
+  ```
+  http://<EC2-IP>:9090/targets
+  ```
+- Ensure Node Exporter is running:
+
+```bash
+sudo systemctl status node_exporter
+```
+
+---
+
+## 9. File Locations Summary
+
+| Component              | Path                                   |
+|------------------------|----------------------------------------|
+| Prometheus config      | /etc/prometheus/prometheus.yml          |
+| Prometheus rules       | /etc/prometheus/alert.rules.yml         |
+| Alertmanager config    | /etc/alertmanager/alertmanager.yml      |
+| Node Exporter          | /usr/local/bin/node_exporter            |
+| Grafana dashboards     | /var/lib/grafana/dashboards/            |
+
+---
+
+## 10. Terraform Operations
+
+### Initialize
+
+```bash
 terraform init
-Plan
+```
+
+### Plan
+
+```bash
 terraform plan
-Apply
+```
+
+### Apply
+
+```bash
 terraform apply
-Destroy
+```
+
+### Destroy
+
+```bash
 terraform destroy
-**11. Architecture Summary**
-The monitoring stack is deployed as follows:
-EC2 instance runs Prometheus, Alertmanager, Grafana, and Node Exporter
-Prometheus scrapes metrics from Node Exporter
-Alertmanager receives alerts triggered by Prometheus rules
-Grafana visualizes data from Prometheus via pre-built dashboards
+```
+
+---
+
+## 11. Architecture Summary
+
+- EC2 instance runs:
+    - Prometheus
+    - Alertmanager
+    - Grafana
+    - Node Exporter
+
+- Prometheus scrapes:
+    - Node Exporter (system metrics)
+
+- Alertmanager receives alerts from Prometheus
+
+- Grafana visualizes Prometheus data
