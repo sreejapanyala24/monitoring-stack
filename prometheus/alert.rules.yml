@@ -1,0 +1,20 @@
+groups:
+  - name: node_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(node_cpu_seconds_total{mode!="idle"}[5m]) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 50% for more than 1 minute."
+
+      - alert: LowMemory
+        expr: node_memory_MemAvailable_bytes < 500000000
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low memory available"
+          description: "Available memory is below 500MB."
