@@ -6,9 +6,6 @@ route:
 
 receivers:
   - name: "simulation"
-    email_configs:
-      - to: "sreejapanyala24@gmail.com"
-        send_resolved: true
     slack_configs:
       - api_url: "https://hooks.slack.com/services/T000/B000/FAKE"
         channel: "#alerts"

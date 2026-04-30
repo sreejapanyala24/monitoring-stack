@@ -32,9 +32,9 @@ resource "aws_security_group" "monitoring_sg" {
   }
 
   ingress {
-    from_port = 9093
-    to_port   = 9093
-    protocol  = "tcp"
+    from_port   = 9093
+    to_port     = 9093
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

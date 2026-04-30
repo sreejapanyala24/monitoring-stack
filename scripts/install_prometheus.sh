@@ -20,6 +20,7 @@ chmod 755 /usr/local/bin/promtool
 #give prometheus ownership to config/data dirs
 chown -R prometheus:prometheus /etc/prometheus
 chown -R prometheus:prometheus /var/lib/prometheus
+
 # Create Prometheus config file
 cat > /etc/prometheus/prometheus.yml << 'CONFIGEOF'
 global:
@@ -31,10 +32,21 @@ scrape_configs:
   - job_name: "node_exporter"
     static_configs:
       - targets: ["localhost:9100"]
+
 rule_files:
   - "alert.rules.yml"
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "localhost:9093"
+
 CONFIGEOF
+
+cp /tmp/alert.rules.yml /etc/prometheus/alert.rules.yml
+chown prometheus:prometheus /etc/prometheus/alert.rules.yml
+
 #create prometheus service file
 cat > /etc/systemd/system/prometheus.service << 'SVCEOF'
 [Unit]
