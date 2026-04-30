@@ -23,8 +23,8 @@ cp alertmanager-0.27.0.linux-amd64/amtool /usr/local/bin/
 chmod 755 /usr/local/bin/alertmanager
 chmod 755 /usr/local/bin/amtool
 
-# Move default config (you will overwrite this with your own)
-cp alertmanager-0.27.0.linux-amd64/alertmanager.yml /etc/alertmanager/
+
+cp /tmp/alertmanager.yml /etc/alertmanager/alertmanager.yml
 
 # Give ownership
 chown -R alertmanager:alertmanager /etc/alertmanager
@@ -43,7 +43,8 @@ Group=alertmanager
 Type=simple
 ExecStart=/usr/local/bin/alertmanager \
   --config.file=/etc/alertmanager/alertmanager.yml \
-  --storage.path=/var/lib/alertmanager/
+  --storage.path=/var/lib/alertmanager/ \
+  --web.listen-address=":9093"
 
 Restart=always
 

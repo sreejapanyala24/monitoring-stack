@@ -10,6 +10,9 @@ resource "aws_instance" "monitoring" {
     install_prometheus    = file("${path.module}/../../../scripts/install_prometheus.sh")
     install_node_exporter = file("${path.module}/../../../scripts/install_node_exporter.sh")
     install_grafana       = file("${path.module}/../../../scripts/install_grafana.sh")
+    install_alertmanager  = file("${path.module}/../../../scripts/install_alertmanager.sh")
+    alert_rules           = file("${path.module}/../../../prometheus/alert.rules.yml")
+    alertmanager_config   = file("${path.module}/../../../alertmanager/alertmanager.yml")
   }))
 
 
